@@ -50,3 +50,7 @@ htmlcov/
 
 # flake8
 .flake8
+
+# pytest
+.pytest_cache/
+.pytest_tmp/
