@@ -307,7 +307,7 @@ def delete_shopping_list(shopping_lists: List[dict]) -> None:
 
     show_shopping_lists(shopping_lists)
 
-    list_id = input_int("Введите ID списка для удаления: ")
+    list_id = input_int("Введите номер списка для удаления: ")
 
     for i, shopping_list in enumerate(shopping_lists):
         if shopping_list["id"] == list_id:
