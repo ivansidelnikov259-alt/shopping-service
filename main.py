@@ -1,361 +1,293 @@
 """
-Сервис учета покупок и формирования списка покупок.
-Практическая работа №2: коллекции, функции, циклы, файлы.
+Сервис учёта покупок и формирования списка покупок.
+
+Практическая работа №3: объектно-ориентированное программирование.
+Точка входа и пользовательский интерфейс.
 """
 
-from datetime import datetime
-from typing import List, Dict
+from typing import List
 
-from storage import load_data, save_data
-from utils import input_float, input_non_empty, input_date, input_int
+from models import Category, Product, Purchase, ShoppingList, Store
+from models.category import get_or_create_category, show_categories
+from models.product import show_products
+from models.purchase import (
+    add_purchase,
+    delete_purchase,
+    find_purchases_by_name,
+    get_categories_summary,
+    get_total_sum,
+    show_purchases,
+)
+from models.shopping_list import (
+    add_shopping_list,
+    delete_shopping_list,
+    show_shopping_lists,
+)
+from models.store import get_or_create_store, show_stores
+from storage import (
+    load_categories,
+    load_purchases,
+    load_shopping_lists,
+    load_stores,
+    save_categories,
+    save_purchases,
+    save_shopping_lists,
+    save_stores,
+)
+from utils import input_date, input_float, input_int, input_non_empty
 
 APP_VERSION = "0.3.0"
 APP_NAME = "Shopping Service"
 
-PURCHASES_FILE = "purchases.json"
-SHOPPING_LISTS_FILE = "shopping_lists.json"
-
 
 def print_header() -> None:
     """Выводит заголовок приложения."""
-    print("=" * 50)
+    print("=" * 60)
     print(f"{APP_NAME} v{APP_VERSION}")
-    print("Сервис учета покупок и формирования списка покупок")
-    print("=" * 50)
+    print("Сервис учёта покупок и формирования списка покупок")
+    print("=" * 60)
 
 
 def print_menu() -> None:
     """Выводит главное меню."""
     print("\nГлавное меню:")
-    print("1. Добавить покупку")
-    print("2. Показать все покупки")
-    print("3. Показать итоги по категориям")
-    print("4. Найти покупки по названию")
-    print("5. Создать список покупок")
-    print("6. Показать списки покупок")
-    print("7. Удалить покупку")
-    print("8. Удалить список покупок")
-    print("9. Выход")
+    print("1.  Добавить покупку")
+    print("2.  Показать все покупки")
+    print("3.  Показать итоги по категориям")
+    print("4.  Найти покупки по названию")
+    print("5.  Удалить покупку")
+    print("6.  Создать список покупок")
+    print("7.  Показать списки покупок")
+    print("8.  Удалить список покупок")
+    print("9.  Показать все категории")
+    print("10. Показать все магазины")
+    print("11. Показать все товары")
+    print("12. Выход")
 
 
 def get_user_choice() -> str:
-    """
-    Получает выбор пользователя из меню.
-
-    Returns:
-        Строку с выбором пользователя.
-    """
+    """Получает выбор пользователя из меню."""
     print_menu()
-    choice = input("\nВыберите действие (1-9): ").strip()
-    return choice
+    return input("\nВыберите действие (1-12): ").strip()
 
 
-def add_purchase(purchases: List[dict]) -> None:
+# ---------- Пользовательские сценарии ----------
+
+
+def create_purchase(
+    purchases: List[Purchase],
+    categories: List[Category],
+    stores: List[Store],
+) -> None:
     """
-    Добавляет новую покупку.
+    Сценарий создания новой покупки.
 
     Args:
-        purchases: Список покупок.
+        purchases: Коллекция покупок.
+        categories: Коллекция категорий.
+        stores: Коллекция магазинов.
     """
     print("\n--- Добавление новой покупки ---")
 
     product_name = input_non_empty("Введите название товара: ")
     price = input_float("Введите цену (руб): ")
-    category = input_non_empty("Введите категорию товара: ")
-    store = input("Введите название магазина (Enter - не указан): ").strip()
-    if not store:
-        store = "Не указан"
 
-    purchase_date = input_date("Введите дату покупки (ДД.ММ.ГГГГ, Enter - сегодня): ")
+    category_name = input_non_empty("Введите категорию товара: ")
+    category = get_or_create_category(categories, category_name)
 
-    purchase = {
-        "id": get_next_id(purchases),
-        "product": product_name,
-        "price": price,
-        "category": category,
-        "store": store,
-        "date": purchase_date.isoformat(),
-        "created_at": datetime.now().isoformat()
-    }
+    store_name = input("Введите название магазина (Enter — не указан): ").strip()
+    if not store_name:
+        store_name = "Не указан"
+    store = get_or_create_store(stores, store_name)
 
-    purchases.append(purchase)
+    purchase_date = input_date(
+        "Введите дату покупки (ДД.ММ.ГГГГ, Enter — сегодня): "
+    )
 
-    if save_data(PURCHASES_FILE, purchases):
-        print(f"\n✅ Покупка '{product_name}' успешно добавлена!")
-    else:
-        print("\n❌ Ошибка при сохранении покупки")
+    product = Product(
+        product_id=0,
+        name=product_name,
+        price=price,
+        category=category,
+    )
 
+    purchase = add_purchase(
+        purchases=purchases,
+        product=product,
+        price=price,
+        category=category,
+        store=store,
+        purchase_date=purchase_date,
+    )
 
-def get_next_id(items: List[dict]) -> int:
-    """
-    Возвращает следующий свободный ID.
+    save_purchases(purchases)
+    save_categories(categories)
+    save_stores(stores)
 
-    Args:
-        items: Список элементов.
-
-    Returns:
-        Следующий ID.
-    """
-    if not items:
-        return 1
-
-    max_id = max(item.get("id", 0) for item in items)
-    return max_id + 1
+    print(f"\n✅ Покупка создана: {purchase}")
 
 
-def show_all_purchases(purchases: List[dict]) -> None:
-    """
-    Показывает все покупки.
-
-    Args:
-        purchases: Список покупок.
-    """
-    print("\n--- Все покупки ---")
-
-    if not purchases:
-        print("Список покупок пуст")
-        return
-
-    total_sum = 0.0
-
-    print(f"\n{'ID':<5} {'Товар':<20} {'Цена':<10} {'Категория':<15} {'Магазин':<15} {'Дата':<12}")
-    print("-" * 77)
-
-    for purchase in purchases:
-        print(f"{purchase['id']:<5} {purchase['product']:<20} {purchase['price']:<10.2f} "
-              f"{purchase['category']:<15} {purchase['store']:<15} {purchase['date']:<12}")
-        total_sum += purchase["price"]
-
-    print("-" * 77)
-    print(f"Всего покупок: {len(purchases)}")
-    print(f"Общая сумма: {total_sum:.2f} руб.")
-
-
-def show_categories_summary(purchases: List[dict]) -> None:
-    """
-    Показывает итоги по категориям.
-
-    Args:
-        purchases: Список покупок.
-    """
-    print("\n--- Итоги по категориям ---")
-
-    if not purchases:
-        print("Нет данных для анализа")
-        return
-
-    categories: Dict[str, float] = {}
-
-    for purchase in purchases:
-        category = purchase["category"]
-        price = purchase["price"]
-
-        if category in categories:
-            categories[category] += price
-        else:
-            categories[category] = price
-
-    print(f"\n{'Категория':<20} {'Сумма':<15} {'Кол-во':<10}")
-    print("-" * 45)
-
-    for category, total in sorted(categories.items(), key=lambda x: x[1], reverse=True):
-        count = sum(1 for p in purchases if p["category"] == category)
-        print(f"{category:<20} {total:<15.2f} {count:<10}")
-
-    print("-" * 45)
-    print(f"Всего категорий: {len(categories)}")
-
-
-def find_purchases(purchases: List[dict]) -> None:
-    """
-    Ищет покупки по названию товара.
-
-    Args:
-        purchases: Список покупок.
-    """
+def search_purchases(purchases: List[Purchase]) -> None:
+    """Сценарий поиска покупок по названию."""
     print("\n--- Поиск покупок ---")
-
-    query = input("Введите название товара для поиска: ").strip().lower()
+    query = input("Введите часть названия товара: ").strip()
 
     if not query:
-        print("Ошибка: введите название для поиска")
+        print("Ошибка: пустой запрос")
         return
 
-    found = [p for p in purchases if query in p["product"].lower()]
-
+    found = find_purchases_by_name(purchases, query)
     if not found:
-        print(f"Покупки с названием '{query}' не найдены")
+        print(f"Покупки по запросу '{query}' не найдены")
         return
 
     print(f"\nНайдено покупок: {len(found)}")
     for purchase in found:
-        print(f"  #{purchase['id']}: {purchase['product']} - {purchase['price']:.2f} руб. "
-              f"({purchase['category']}, {purchase['date']})")
+        print(f"  {purchase}")
 
 
-def create_shopping_list(shopping_lists: List[dict]) -> None:
-    """
-    Создает новый список покупок.
+def remove_purchase(purchases: List[Purchase]) -> None:
+    """Сценарий удаления покупки."""
+    print("\n--- Удаление покупки ---")
+    if not purchases:
+        print("Покупки отсутствуют")
+        return
 
-    Args:
-        shopping_lists: Список списков покупок.
-    """
+    show_purchases(purchases)
+    purchase_id = input_int("Введите ID покупки для удаления: ")
+
+    if delete_purchase(purchases, purchase_id):
+        save_purchases(purchases)
+        print(f"\n✅ Покупка #{purchase_id} удалена")
+    else:
+        print(f"\n❌ Покупка #{purchase_id} не найдена")
+
+
+def create_list(shopping_lists: List[ShoppingList]) -> None:
+    """Сценарий создания списка покупок."""
     print("\n--- Создание списка покупок ---")
-
     list_name = input_non_empty("Введите название списка: ")
+
+    shopping_list = add_shopping_list(shopping_lists, list_name)
 
     print(f"\nСписок '{list_name}' создан!")
     print("Добавляйте товары (введите 'stop' для завершения):")
 
-    items: List[str] = []
-    item_number = 1
-
+    counter = 1
     while True:
-        item = input(f"Товар {item_number}: ").strip()
-
-        if item.lower() in ("stop", "стоп"):
+        item_name = input(f"Товар {counter}: ").strip()
+        if item_name.lower() in ("stop", "стоп"):
             break
+        if not item_name:
+            continue
+        price_input = input(f"  Цена товара '{item_name}': ").strip()
+        try:
+            price = float(price_input)
+        except ValueError:
+            print("  Ошибка: цена должна быть числом, товар не добавлен")
+            continue
 
-        if item:
-            items.append(item)
-            item_number += 1
+        product = Product(
+            product_id=counter,
+            name=item_name,
+            price=price,
+        )
+        shopping_list.add_item(product)
+        counter += 1
 
-    new_list = {
-        "id": get_next_id(shopping_lists),
-        "name": list_name,
-        "items": items,
-        "created_at": datetime.now().isoformat()
-    }
-
-    shopping_lists.append(new_list)
-
-    if save_data(SHOPPING_LISTS_FILE, shopping_lists):
-        print(f"\n✅ Список '{list_name}' сохранен!")
-        if items:
-            print(f"Товаров в списке: {len(items)}")
-    else:
-        print("\n❌ Ошибка при сохранении списка")
-
-
-def show_shopping_lists(shopping_lists: List[dict]) -> None:
-    """
-    Показывает все списки покупок.
-
-    Args:
-        shopping_lists: Список списков покупок.
-    """
-    print("\n--- Списки покупок ---")
-
-    if not shopping_lists:
-        print("Списки покупок отсутствуют")
-        return
-
-    for shopping_list in shopping_lists:
-        print(f"\nСписок #{shopping_list['id']}: {shopping_list['name']}")
-        print(f"Создан: {shopping_list['created_at'][:10]}")
-
-        if shopping_list["items"]:
-            print("Товары:")
-            for i, item in enumerate(shopping_list["items"], 1):
-                print(f"  {i}. {item}")
-            print(f"Всего товаров: {len(shopping_list['items'])}")
-        else:
-            print("Список пуст")
+    save_shopping_lists(shopping_lists)
+    print(f"\n✅ Список сохранён: {shopping_list}")
+    if shopping_list.items:
+        print(f"   Итого: {shopping_list.get_total():.2f} руб.")
 
 
-def delete_purchase(purchases: List[dict]) -> None:
-    """
-    Удаляет покупку по ID.
-
-    Args:
-        purchases: Список покупок.
-    """
-    print("\n--- Удаление покупки ---")
-
-    if not purchases:
-        print("Список покупок пуст")
-        return
-
-    show_all_purchases(purchases)
-
-    purchase_id = input_int("Введите ID покупки для удаления: ")
-
-    for i, purchase in enumerate(purchases):
-        if purchase["id"] == purchase_id:
-            deleted = purchases.pop(i)
-            if save_data(PURCHASES_FILE, purchases):
-                print(f"\n✅ Покупка '{deleted['product']}' удалена!")
-            else:
-                print("\n❌ Ошибка при сохранении изменений")
-            return
-
-    print(f"\n❌ Покупка с ID {purchase_id} не найдена")
-
-
-def delete_shopping_list(shopping_lists: List[dict]) -> None:
-    """
-    Удаляет список покупок по ID.
-
-    Args:
-        shopping_lists: Список списков покупок.
-    """
+def remove_list(shopping_lists: List[ShoppingList]) -> None:
+    """Сценарий удаления списка покупок."""
     print("\n--- Удаление списка покупок ---")
-
     if not shopping_lists:
-        print("Списки покупок отсутствуют")
+        print("Списки отсутствуют")
         return
 
     show_shopping_lists(shopping_lists)
+    list_id = input_int("Введите ID списка для удаления: ")
 
-    list_id = input_int("Введите номер списка для удаления: ")
+    if delete_shopping_list(shopping_lists, list_id):
+        save_shopping_lists(shopping_lists)
+        print(f"\n✅ Список #{list_id} удалён")
+    else:
+        print(f"\n❌ Список #{list_id} не найден")
 
-    for i, shopping_list in enumerate(shopping_lists):
-        if shopping_list["id"] == list_id:
-            deleted = shopping_lists.pop(i)
-            if save_data(SHOPPING_LISTS_FILE, shopping_lists):
-                print(f"\n✅ Список '{deleted['name']}' удалён!")
-            else:
-                print("\n❌ Ошибка при сохранении изменений")
-            return
 
-    print(f"\n❌ Список с ID {list_id} не найден")
+def print_categories_summary(purchases: List[Purchase]) -> None:
+    """Выводит итоги по категориям."""
+    print("\n--- Итоги по категориям ---")
+    if not purchases:
+        print("Покупки отсутствуют")
+        return
+
+    summary = get_categories_summary(purchases)
+    print(f"\n{'Категория':<25} {'Сумма':>15}")
+    print("-" * 42)
+    for name, total in sorted(summary.items(), key=lambda x: x[1], reverse=True):
+        print(f"{name:<25} {total:>15.2f}")
+    print("-" * 42)
+    print(f"Всего покупок: {len(purchases)}")
+    print(f"Общая сумма: {get_total_sum(purchases):.2f} руб.")
+
+
+# ---------- Главная функция ----------
 
 
 def main() -> None:
     """Главная функция приложения."""
     print_header()
 
-    # Загрузка данных из файлов
-    purchases = load_data(PURCHASES_FILE)
-    shopping_lists = load_data(SHOPPING_LISTS_FILE)
+    # Загрузка данных из файлов в виде объектов
+    categories = load_categories()
+    stores = load_stores()
+    purchases = load_purchases()
+    shopping_lists = load_shopping_lists()
 
     print(f"Загружено покупок: {len(purchases)}")
     print(f"Загружено списков: {len(shopping_lists)}")
+    print(f"Загружено категорий: {len(categories)}")
+    print(f"Загружено магазинов: {len(stores)}")
 
     while True:
         choice = get_user_choice()
 
         if choice == "1":
-            add_purchase(purchases)
+            create_purchase(purchases, categories, stores)
         elif choice == "2":
-            show_all_purchases(purchases)
+            show_purchases(purchases)
         elif choice == "3":
-            show_categories_summary(purchases)
+            print_categories_summary(purchases)
         elif choice == "4":
-            find_purchases(purchases)
+            search_purchases(purchases)
         elif choice == "5":
-            create_shopping_list(shopping_lists)
+            remove_purchase(purchases)
         elif choice == "6":
-            show_shopping_lists(shopping_lists)
+            create_list(shopping_lists)
         elif choice == "7":
-            delete_purchase(purchases)
+            show_shopping_lists(shopping_lists)
         elif choice == "8":
-            delete_shopping_list(shopping_lists)
+            remove_list(shopping_lists)
         elif choice == "9":
+            show_categories(categories)
+        elif choice == "10":
+            show_stores(stores)
+        elif choice == "11":
+            all_products = [p.product for p in purchases]
+            show_products(all_products)
+        elif choice == "12":
+            save_purchases(purchases)
+            save_shopping_lists(shopping_lists)
+            save_categories(categories)
+            save_stores(stores)
             print("\nДо свидания! Спасибо за использование сервиса.")
             break
         else:
-            print("\n❌ Неверный выбор. Пожалуйста, выберите действие от 1 до 9")
+            print("\n❌ Неверный выбор. Введите число от 1 до 12")
 
 
 if __name__ == "__main__":

@@ -1,76 +1,77 @@
 """
-Тесты для сервиса учета покупок.
+Тесты модуля storage.
 """
 
-from storage import load_data, save_data
-from utils import input_float, input_non_empty
-from main import get_next_id
+import storage
+from models import Category, Purchase, ShoppingList, Store
 
 
-def test_get_next_id():
-    """Тест функции получения следующего ID."""
-    # Пустой список
-    assert get_next_id([]) == 1
-
-    # Список с элементами
-    items = [{"id": 1}, {"id": 5}, {"id": 3}]
-    assert get_next_id(items) == 6
-
-
-def test_load_empty_data():
-    """Тест загрузки несуществующего файла."""
-    data = load_data("nonexistent_file.json")
-    assert data == []
-
-
-def test_save_and_load_data(tmp_path, monkeypatch):
-    """Тест сохранения и загрузки данных."""
-    import storage
+def test_save_and_load_purchases(tmp_path, monkeypatch):
+    """Проверяет сохранение и загрузку покупок."""
     monkeypatch.setattr(storage, "DATA_DIR", tmp_path)
 
-    test_data = [{"id": 1, "name": "Тест"}]
+    product = Category(category_id=1, name="Продукты")
+    store = Store(store_id=1, name="Пятёрочка")
 
-    # Сохраняем
-    assert save_data("test.json", test_data) is True
+    from datetime import date
+    from models import Product
 
-    # Загружаем
-    loaded = load_data("test.json")
+    prod = Product(product_id=1, name="Молоко", price=89.9, category=product)
+
+    purchase = Purchase(
+        purchase_id=1,
+        product=prod,
+        price=89.9,
+        category=product,
+        store=store,
+        purchase_date=date(2026, 9, 15),
+    )
+
+    assert storage.save_purchases([purchase]) is True
+
+    loaded = storage.load_purchases()
     assert len(loaded) == 1
-    assert loaded[0]["name"] == "Тест"
+    assert loaded[0].product.name == "Молоко"
+    assert loaded[0].price == 89.9
 
 
-def test_input_float_validation(monkeypatch):
-    """Тест валидации ввода числа."""
-    # Имитируем ввод пользователя
-    inputs = iter(["abc", "-5", "10.5"])
-    monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+def test_save_and_load_shopping_lists(tmp_path, monkeypatch):
+    """Проверяет сохранение и загрузку списков покупок."""
+    monkeypatch.setattr(storage, "DATA_DIR", tmp_path)
 
-    result = input_float("Введите число: ")
-    assert result == 10.5
+    sl = ShoppingList(list_id=1, name="На выходные")
+    assert storage.save_shopping_lists([sl]) is True
 
-
-def test_input_non_empty(monkeypatch):
-    """Тест ввода непустой строки."""
-    inputs = iter(["", "  ", "Тест"])
-    monkeypatch.setattr('builtins.input', lambda _: next(inputs))
-
-    result = input_non_empty("Введите строку: ")
-    assert result == "Тест"
+    loaded = storage.load_shopping_lists()
+    assert len(loaded) == 1
+    assert loaded[0].name == "На выходные"
 
 
-def test_add_purchase():
-    """Тест добавления покупки."""
-    purchases = []
-    purchase = {
-        "id": get_next_id(purchases),
-        "product": "Молоко",
-        "price": 89.90,
-        "category": "Продукты",
-        "store": "Пятёрочка",
-        "date": "2026-09-08"
-    }
-    purchases.append(purchase)
+def test_load_empty_file(tmp_path, monkeypatch):
+    """Проверяет, что при отсутствии файла возвращается пустой список."""
+    monkeypatch.setattr(storage, "DATA_DIR", tmp_path)
+    assert storage.load_purchases() == []
+    assert storage.load_shopping_lists() == []
 
-    assert len(purchases) == 1
-    assert purchases[0]["product"] == "Молоко"
-    assert purchases[0]["price"] == 89.90
+
+def test_save_and_load_categories(tmp_path, monkeypatch):
+    """Проверяет сохранение и загрузку категорий."""
+    monkeypatch.setattr(storage, "DATA_DIR", tmp_path)
+    cats = [Category(category_id=1, name="Продукты")]
+    assert storage.save_categories(cats) is True
+
+    loaded = storage.load_categories()
+    assert len(loaded) == 1
+    assert loaded[0].name == "Продукты"
+
+
+def test_save_and_load_stores(tmp_path, monkeypatch):
+    """Проверяет сохранение и загрузку магазинов."""
+    monkeypatch.setattr(storage, "DATA_DIR", tmp_path)
+    stores = [Store(store_id=1, name="Пятёрочка", address="ул. Ленина, 1")]
+    assert storage.save_stores(stores) is True
+
+    loaded = storage.load_stores()
+    assert len(loaded) == 1
+    assert loaded[0].name == "Пятёрочка"
+    assert loaded[0].address == "ул. Ленина, 1"
