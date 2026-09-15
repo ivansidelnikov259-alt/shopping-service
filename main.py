@@ -9,7 +9,7 @@ from typing import List, Dict
 from storage import load_data, save_data
 from utils import input_float, input_non_empty, input_date, input_int
 
-APP_VERSION = "0.2.0"
+APP_VERSION = "0.3.0"
 APP_NAME = "Shopping Service"
 
 PURCHASES_FILE = "purchases.json"
@@ -34,7 +34,8 @@ def print_menu() -> None:
     print("5. Создать список покупок")
     print("6. Показать списки покупок")
     print("7. Удалить покупку")
-    print("8. Выход")
+    print("8. Удалить список покупок")
+    print("9. Выход")
 
 
 def get_user_choice() -> str:
@@ -45,7 +46,7 @@ def get_user_choice() -> str:
         Строку с выбором пользователя.
     """
     print_menu()
-    choice = input("\nВыберите действие (1-8): ").strip()
+    choice = input("\nВыберите действие (1-9): ").strip()
     return choice
 
 
@@ -291,6 +292,35 @@ def delete_purchase(purchases: List[dict]) -> None:
     print(f"\n❌ Покупка с ID {purchase_id} не найдена")
 
 
+def delete_shopping_list(shopping_lists: List[dict]) -> None:
+    """
+    Удаляет список покупок по ID.
+
+    Args:
+        shopping_lists: Список списков покупок.
+    """
+    print("\n--- Удаление списка покупок ---")
+
+    if not shopping_lists:
+        print("Списки покупок отсутствуют")
+        return
+
+    show_shopping_lists(shopping_lists)
+
+    list_id = input_int("Введите ID списка для удаления: ")
+
+    for i, shopping_list in enumerate(shopping_lists):
+        if shopping_list["id"] == list_id:
+            deleted = shopping_lists.pop(i)
+            if save_data(SHOPPING_LISTS_FILE, shopping_lists):
+                print(f"\n✅ Список '{deleted['name']}' удалён!")
+            else:
+                print("\n❌ Ошибка при сохранении изменений")
+            return
+
+    print(f"\n❌ Список с ID {list_id} не найден")
+
+
 def main() -> None:
     """Главная функция приложения."""
     print_header()
@@ -320,10 +350,12 @@ def main() -> None:
         elif choice == "7":
             delete_purchase(purchases)
         elif choice == "8":
+            delete_shopping_list(shopping_lists)
+        elif choice == "9":
             print("\nДо свидания! Спасибо за использование сервиса.")
             break
         else:
-            print("\n❌ Неверный выбор. Пожалуйста, выберите действие от 1 до 8")
+            print("\n❌ Неверный выбор. Пожалуйста, выберите действие от 1 до 9")
 
 
 if __name__ == "__main__":
