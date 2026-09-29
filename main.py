@@ -198,7 +198,7 @@ def create_list(shopping_lists: List[ShoppingList]) -> None:
     save_shopping_lists(shopping_lists)
     print(f"\n✅ Список сохранён: {shopping_list}")
     if shopping_list.items:
-        print(f"   Итого: {shopping_list.get_total():.2f} руб.")
+        print(f"   Итого: {shopping_list.total():.2f} руб.")
 
 
 def remove_list(shopping_lists: List[ShoppingList]) -> None:
