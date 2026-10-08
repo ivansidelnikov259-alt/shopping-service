@@ -1,0 +1,9 @@
+{% if shopping_list.is_completed %}
+    <span class="badge bg-secondary status-badge status-completed">
+        Завершён
+    </span>
+{% else %}
+    <span class="badge bg-success status-badge status-active">
+        Активен
+    </span>
+{% endif %}

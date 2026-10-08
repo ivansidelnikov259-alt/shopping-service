@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Списки покупок - Shopping Service{% endblock %}
+
+{% block content %}
+<h1>Списки покупок</h1>
+
+<p class="text-muted">
+    Всего списков: {{ shopping_lists|length }}
+</p>
+
+{% if shopping_lists %}
+    <ul class="list-group">
+        {% for shopping_list in shopping_lists %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <a href="{% url 'shopping_lists:detail' shopping_list.id %}">
+                    {{ shopping_list.name }} ({{ shopping_list.items|length }} товаров)
+                </a>
+                <span class="badge bg-secondary">
+                    {{ shopping_list.total|floatformat:2 }} руб.
+                </span>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <div class="alert alert-info">
+        Списков пока нет. Создайте их через консольное приложение.
+    </div>
+{% endif %}
+{% endblock %}

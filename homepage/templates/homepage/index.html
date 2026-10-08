@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Главная - Shopping Service{% endblock %}
+
+{% block content %}
+<div class="jumbotron bg-white p-5 rounded shadow-sm">
+    <h1 class="display-4">Shopping Service</h1>
+    <p class="lead">Сервис учёта покупок и формирования списка покупок.</p>
+    <hr class="my-4">
+    <p>Основные разделы:</p>
+    <a href="{% url 'purchases:list' %}" class="btn btn-primary me-2">
+        Покупки
+    </a>
+    <a href="{% url 'shopping_lists:list' %}" class="btn btn-secondary">
+        Списки покупок
+    </a>
+</div>
+{% endblock %}

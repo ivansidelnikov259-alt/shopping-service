@@ -1,0 +1,37 @@
+/* Собственные стили Shopping Service */
+
+body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+.navbar-brand {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.purchase-card {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.purchase-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.status-badge {
+    font-size: 0.85rem;
+    padding: 0.35em 0.65em;
+}
+
+.status-active {
+    background-color: #198754 !important;
+}
+
+.status-completed {
+    background-color: #6c757d !important;
+}
+
+footer {
+    border-top: 1px solid #dee2e6;
+    padding-top: 1rem;
+}

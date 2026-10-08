@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if shopping_list %}
+        {{ shopping_list.name }} - Shopping Service
+    {% else %}
+        Список не найден - Shopping Service
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+{% if shopping_list %}
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h1 class="card-title">{{ shopping_list.name }}</h1>
+            <p class="card-text">
+                <strong>Создан:</strong>
+                {{ shopping_list.created_at|date:"d.m.Y" }}
+            </p>
+
+            {% if shopping_list.items %}
+                <ul class="list-group mb-3">
+                    {% for product in shopping_list.items %}
+                        <li class="list-group-item">
+                            {{ product.name }} —
+                            {{ product.price|floatformat:2 }} руб.
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>Список пуст.</p>
+            {% endif %}
+
+            <p class="card-text">
+                <strong>Итого:</strong>
+                {{ shopping_list.total|floatformat:2 }} руб.
+            </p>
+
+            {% include "shopping_lists/includes/status.html" %}
+        </div>
+    </div>
+{% else %}
+    <h1 class="text-danger">Список не найден</h1>
+    <p>Список с указанным идентификатором отсутствует.</p>
+{% endif %}
+
+<a href="{% url 'shopping_lists:list' %}" class="btn btn-outline-secondary mt-3">
+    ← к спискам покупок
+</a>
+{% endblock %}
