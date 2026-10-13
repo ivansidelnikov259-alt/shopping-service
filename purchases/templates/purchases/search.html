@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Поиск покупок - Shopping Service{% endblock %}
+
+{% block content %}
+<h1>Поиск покупок</h1>
+
+<form method="get" class="mb-4">
+    <div class="input-group">
+        <input
+            type="text"
+            name="q"
+            class="form-control"
+            placeholder="Введите название товара..."
+            value="{{ query }}"
+        >
+        <button type="submit" class="btn btn-primary">Найти</button>
+    </div>
+</form>
+
+{% if query %}
+    <h2>Результаты для «{{ query }}»</h2>
+    {% if results %}
+        <ul class="list-group">
+            {% for purchase in results %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <a href="{% url 'purchases:detail' purchase.id %}">
+                        {{ purchase.product_name }} —
+                        {{ purchase.price|floatformat:2 }} руб.
+                    </a>
+                    <span class="badge bg-secondary">
+                        {{ purchase.purchase_date }}
+                    </span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <div class="alert alert-warning">
+            Покупки не найдены.
+        </div>
+    {% endif %}
+{% endif %}
+{% endblock %}

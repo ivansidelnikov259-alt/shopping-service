@@ -6,13 +6,38 @@
 <h1>Покупки</h1>
 
 <p class="text-muted">
-    Всего покупок: {{ purchases|length }}
+    Всего покупок: {{ purchases|length }}.
+    Общая сумма: {{ total_sum|floatformat:2 }} руб.
 </p>
 
 {% if purchases %}
     <div class="row">
         {% for purchase in purchases %}
-            {% include "purchases/includes/purchase_card.html" %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <article class="card purchase-card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            {{ purchase.product_name|default:"Без названия" }}
+                        </h5>
+                        <p class="card-text">
+                            <strong>Цена:</strong>
+                            {{ purchase.price|floatformat:2 }} руб.
+                        </p>
+                        <p class="card-text">
+                            <strong>Категория:</strong>
+                            {{ purchase.category_name }}
+                        </p>
+                        <p class="card-text">
+                            <strong>Магазин:</strong>
+                            {{ purchase.store_name }}
+                        </p>
+                        <a href="{% url 'purchases:detail' purchase.id %}"
+                           class="btn btn-sm btn-primary">
+                            Подробнее
+                        </a>
+                    </div>
+                </article>
+            </div>
         {% endfor %}
     </div>
 {% else %}

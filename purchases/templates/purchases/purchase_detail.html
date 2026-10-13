@@ -13,21 +13,20 @@
     <div class="card shadow-sm">
         <div class="card-body">
             <h1 class="card-title">
-                Покупка №{{ purchase.id }}: {{ purchase.product.name }}
+                Покупка №{{ purchase.id }}: {{ purchase.product_name }}
             </h1>
             <p class="card-text">
                 <strong>Цена:</strong>
                 {{ purchase.price|floatformat:2 }} руб.
             </p>
             <p class="card-text">
-                <strong>Категория:</strong> {{ purchase.category.name }}
+                <strong>Категория:</strong> {{ purchase.category_name }}
             </p>
             <p class="card-text">
-                <strong>Магазин:</strong> {{ purchase.store.name }}
+                <strong>Магазин:</strong> {{ purchase.store_name }}
             </p>
             <p class="card-text">
-                <strong>Дата:</strong>
-                {{ purchase.purchase_date|date:"d.m.Y" }}
+                <strong>Дата:</strong> {{ purchase.purchase_date }}
             </p>
         </div>
     </div>

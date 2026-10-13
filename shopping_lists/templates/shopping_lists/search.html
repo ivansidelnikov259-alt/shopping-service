@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Поиск списков - Shopping Service{% endblock %}
+
+{% block content %}
+<h1>Поиск списков покупок</h1>
+
+<form method="get" class="mb-4">
+    <div class="input-group">
+        <input
+            type="text"
+            name="q"
+            class="form-control"
+            placeholder="Введите название списка..."
+            value="{{ query }}"
+        >
+        <button type="submit" class="btn btn-primary">Найти</button>
+    </div>
+</form>
+
+{% if query %}
+    <h2>Результаты для «{{ query }}»</h2>
+    {% if results %}
+        <ul class="list-group">
+            {% for sl in results %}
+                <li class="list-group-item">
+                    <a href="{% url 'shopping_lists:detail' sl.id %}">
+                        {{ sl.name }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <div class="alert alert-warning">Списки не найдены.</div>
+    {% endif %}
+{% endif %}
+{% endblock %}

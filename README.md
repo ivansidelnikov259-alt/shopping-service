@@ -395,3 +395,15 @@ Django Template Language;
 контейнеризацию приложения в Docker;
 
 настройку CI/CD.
+
+### ПР7 — Слой базы данных SQLite
+
+- Создана база `data/shopping_service.sqlite` (SQLite).
+- Таблицы: `users`, `categories`, `stores`, `products`, `purchases`, `shopping_lists`, `shopping_list_items`.
+- Первичные ключи (`PRIMARY KEY`) и внешние ключи (`FOREIGN KEY`) определены.
+- Схема БД: `sql/schema.sql`.
+- SQL-запросы: `sql/queries.sql` (12 запросов: SELECT, WHERE, JOIN, COUNT, SUM, GROUP BY, HAVING, параметризованный).
+- Модули: `db/database.py` (подключение), `db/import_json.py` (перенос данных).
+- Django-представления читают данные из SQLite через `sqlite3` и `row_factory = sqlite3.Row`.
+- Реализованы страницы поиска (`/purchases/search/`, `/shopping_lists/search/`) и статистики (`/purchases/statistics/`).
+- Настроена кастомная обработка 404 (`handler404`).

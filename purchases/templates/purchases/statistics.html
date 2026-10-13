@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Статистика покупок - Shopping Service{% endblock %}
+
+{% block content %}
+<h1>Статистика покупок</h1>
+
+<h2>По категориям</h2>
+{% if stats %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Категория</th>
+                <th>Количество</th>
+                <th>Сумма, руб.</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in stats %}
+                <tr>
+                    <td>{{ row.category_name }}</td>
+                    <td>{{ row.purchases_count }}</td>
+                    <td>{{ row.total_sum|floatformat:2 }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <div class="alert alert-info">Нет данных.</div>
+{% endif %}
+
+<h2>Покупки в категории «Продукты»</h2>
+{% if by_category %}
+    <ul class="list-group">
+        {% for row in by_category %}
+            <li class="list-group-item">
+                {{ row.product_name }} —
+                {{ row.price|floatformat:2 }} руб.
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <div class="alert alert-info">Нет данных.</div>
+{% endif %}
+{% endblock %}

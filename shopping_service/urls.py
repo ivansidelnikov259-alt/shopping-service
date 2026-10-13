@@ -11,3 +11,7 @@ urlpatterns = [
     path("purchases/", include("purchases.urls")),
     path("shopping_lists/", include("shopping_lists.urls")),
 ]
+
+# Кастомная страница 404 — используется при DEBUG = False.
+# В режиме DEBUG = True Django показывает техническую страницу отладки.
+handler404 = "homepage.views.page_not_found"

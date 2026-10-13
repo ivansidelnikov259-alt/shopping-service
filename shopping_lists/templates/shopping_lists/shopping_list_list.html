@@ -14,17 +14,20 @@
         {% for shopping_list in shopping_lists %}
             <li class="list-group-item d-flex justify-content-between align-items-center">
                 <a href="{% url 'shopping_lists:detail' shopping_list.id %}">
-                    {{ shopping_list.name }} ({{ shopping_list.items|length }} товаров)
+                    {{ shopping_list.name }}
+                    ({{ shopping_list.items_count }} товаров)
                 </a>
-                <span class="badge bg-secondary">
-                    {{ shopping_list.total|floatformat:2 }} руб.
-                </span>
+                {% if shopping_list.is_completed %}
+                    <span class="badge bg-secondary">Завершён</span>
+                {% else %}
+                    <span class="badge bg-success">Активен</span>
+                {% endif %}
             </li>
         {% endfor %}
     </ul>
 {% else %}
     <div class="alert alert-info">
-        Списков пока нет. Создайте их через консольное приложение.
+        Списоков пока нет.
     </div>
 {% endif %}
 {% endblock %}
