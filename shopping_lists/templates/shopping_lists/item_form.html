@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} - Shopping Service{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h1>{{ title }}</h1>
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="mb-3">
+                    <label class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <div class="text-danger">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-success">Сохранить</button>
+            <a href="{% url 'shopping_lists:detail' shopping_list.id %}" class="btn btn-secondary">Отмена</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

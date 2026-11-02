@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-
-{% block title %}Статистика покупок - Shopping Service{% endblock %}
+{% block title %}Статистика - Shopping Service{% endblock %}
 
 {% block content %}
 <h1>Статистика покупок</h1>
+<p>Всего покупок: {{ total_count }} на сумму {{ total_sum|floatformat:2 }} руб.</p>
 
 <h2>По категориям</h2>
 {% if stats %}
@@ -18,7 +18,7 @@
         <tbody>
             {% for row in stats %}
                 <tr>
-                    <td>{{ row.category_name }}</td>
+                    <td>{{ row.name }}</td>
                     <td>{{ row.purchases_count }}</td>
                     <td>{{ row.total_sum|floatformat:2 }}</td>
                 </tr>
@@ -26,20 +26,21 @@
         </tbody>
     </table>
 {% else %}
-    <div class="alert alert-info">Нет данных.</div>
+    <div class="alert alert-info">Нет данных по категориям.</div>
 {% endif %}
 
-<h2>Покупки в категории «Продукты»</h2>
-{% if by_category %}
+<h2 class="mt-5">Топ-5 самых дорогих покупок</h2>
+{% if top_purchases %}
     <ul class="list-group">
-        {% for row in by_category %}
-            <li class="list-group-item">
-                {{ row.product_name }} —
-                {{ row.price|floatformat:2 }} руб.
+        {% for item in top_purchases %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                {{ item.product_name }} 
+                <span class="badge bg-secondary">{{ item.category__name }}</span>
+                <span>{{ item.price|floatformat:2 }} руб.</span>
             </li>
         {% endfor %}
     </ul>
 {% else %}
-    <div class="alert alert-info">Нет данных.</div>
+    <div class="alert alert-info">Нет данных о покупках.</div>
 {% endif %}
 {% endblock %}

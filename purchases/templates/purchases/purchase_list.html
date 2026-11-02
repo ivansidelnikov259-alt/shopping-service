@@ -1,12 +1,60 @@
 {% extends "base.html" %}
-
 {% block title %}Покупки - Shopping Service{% endblock %}
 
 {% block content %}
-<h1>Покупки</h1>
+
+<!-- Заголовок и кнопки управления -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Покупки</h1>
+    <div>
+        <a href="{% url 'purchases:create' %}" class="btn btn-success">+ Добавить покупку</a>
+        <a href="{% url 'purchases:category_create' %}" class="btn btn-outline-primary">+ Категория</a>
+        <a href="{% url 'purchases:store_create' %}" class="btn btn-outline-primary">+ Магазин</a>
+    </div>
+</div>
+
+<!-- Форма с автоматической отправкой -->
+<form method="get" class="mb-4 row g-3 align-items-end" id="filterForm">
+    <div class="col-md-5">
+        <label for="q" class="form-label">Поиск (товар, категория, магазин)</label>
+        <input type="text" name="q" id="q" class="form-control" value="{{ query }}" placeholder="Например: молоко...">
+    </div>
+    <div class="col-md-4">
+        <label for="sort" class="form-label">Сортировать по</label>
+        <select name="sort" id="sort" class="form-select">
+            <option value="date" {% if sort == 'date' %}selected{% endif %}>Дате (сначала новые)</option>
+            <option value="price" {% if sort == 'price' %}selected{% endif %}>Цене (сначала дорогие)</option>
+            <option value="name" {% if sort == 'name' %}selected{% endif %}>Названию</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <a href="{% url 'purchases:list' %}" class="btn btn-outline-secondary w-100">Сбросить</a>
+    </div>
+</form>
+
+<script>
+    // Автоматическая отправка формы при вводе или смене сортировки
+    document.addEventListener("DOMContentLoaded", function() {
+        const form = document.getElementById("filterForm");
+        const searchInput = document.getElementById("q");
+        const sortSelect = document.getElementById("sort");
+        let timeout = null;
+
+        // При вводе текста ждем 500 мс и отправляем (чтобы не спамить сервер)
+        searchInput.addEventListener("input", function() {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => form.submit(), 500);
+        });
+
+        // При смене сортировки отправляем сразу
+        sortSelect.addEventListener("change", function() {
+            form.submit();
+        });
+    });
+</script>
 
 <p class="text-muted">
-    Всего покупок: {{ purchases|length }}.
+    Найдено: {{ purchases|length }}.
     Общая сумма: {{ total_sum|floatformat:2 }} руб.
 </p>
 
@@ -16,33 +64,53 @@
             <div class="col-md-6 col-lg-4 mb-3">
                 <article class="card purchase-card h-100">
                     <div class="card-body">
-                        <h5 class="card-title">
-                            {{ purchase.product_name|default:"Без названия" }}
-                        </h5>
-                        <p class="card-text">
-                            <strong>Цена:</strong>
-                            {{ purchase.price|floatformat:2 }} руб.
-                        </p>
-                        <p class="card-text">
-                            <strong>Категория:</strong>
-                            {{ purchase.category_name }}
-                        </p>
-                        <p class="card-text">
-                            <strong>Магазин:</strong>
-                            {{ purchase.store_name }}
-                        </p>
-                        <a href="{% url 'purchases:detail' purchase.id %}"
-                           class="btn btn-sm btn-primary">
-                            Подробнее
-                        </a>
+                        <h5 class="card-title">{{ purchase.product_name }}</h5>
+                        <p class="card-text"><strong>Цена:</strong> {{ purchase.price|floatformat:2 }} руб.</p>
+                        <p class="card-text"><strong>Категория:</strong> {{ purchase.category.name }}</p>
+                        <p class="card-text"><strong>Магазин:</strong> {{ purchase.store.name|default:"Не указан" }}</p>
+                        
+                        <div class="mt-3 d-flex gap-2">
+                            <a href="{% url 'purchases:detail' purchase.id %}" class="btn btn-sm btn-primary">Подробнее</a>
+                            <a href="{% url 'purchases:edit' purchase.id %}" class="btn btn-sm btn-warning">Ред.</a>
+                            <a href="{% url 'purchases:delete' purchase.id %}" class="btn btn-sm btn-danger">Удал.</a>
+                        </div>
                     </div>
                 </article>
             </div>
         {% endfor %}
     </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <nav aria-label="Навигация по страницам" class="mt-4">
+      <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="{% querystring page=page_obj.previous_page_number %}">Назад</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">Назад</span></li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+          {% if num == page_obj.number %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+          {% else %}
+            <li class="page-item"><a class="page-link" href="{% querystring page=num %}">{{ num }}</a></li>
+          {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="{% querystring page=page_obj.next_page_number %}">Вперед</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">Вперед</span></li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% endif %}
+
 {% else %}
-    <div class="alert alert-info">
-        Покупок пока нет. Добавьте их через консольное приложение.
-    </div>
+    <div class="alert alert-info">По вашему запросу ничего не найдено.</div>
 {% endif %}
 {% endblock %}

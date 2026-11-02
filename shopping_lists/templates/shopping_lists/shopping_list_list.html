@@ -1,33 +1,27 @@
 {% extends "base.html" %}
-
 {% block title %}Списки покупок - Shopping Service{% endblock %}
 
 {% block content %}
-<h1>Списки покупок</h1>
-
-<p class="text-muted">
-    Всего списков: {{ shopping_lists|length }}
-</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Списки покупок</h1>
+    <a href="{% url 'shopping_lists:create' %}" class="btn btn-success">+ Создать список</a>
+</div>
 
 {% if shopping_lists %}
     <ul class="list-group">
         {% for shopping_list in shopping_lists %}
             <li class="list-group-item d-flex justify-content-between align-items-center">
-                <a href="{% url 'shopping_lists:detail' shopping_list.id %}">
-                    {{ shopping_list.name }}
-                    ({{ shopping_list.items_count }} товаров)
-                </a>
-                {% if shopping_list.is_completed %}
-                    <span class="badge bg-secondary">Завершён</span>
-                {% else %}
-                    <span class="badge bg-success">Активен</span>
-                {% endif %}
+                <div>
+                    <a href="{% url 'shopping_lists:detail' shopping_list.id %}" class="fw-bold text-decoration-none">
+                        {{ shopping_list.name }}
+                    </a>
+                    <span class="text-muted ms-2">({{ shopping_list.items.count }} товаров)</span>
+                </div>
+                <span class="badge bg-secondary">{{ shopping_list.total_sum|default:0|floatformat:2 }} руб.</span>
             </li>
         {% endfor %}
     </ul>
 {% else %}
-    <div class="alert alert-info">
-        Списоков пока нет.
-    </div>
+    <div class="alert alert-info">Списков пока нет.</div>
 {% endif %}
 {% endblock %}

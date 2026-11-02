@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} - Shopping Service{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 mt-5 text-center">
+        <h1>{{ title }}</h1>
+        <p class="lead">Вы уверены, что хотите удалить "{{ object }}"?</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger btn-lg">Да, удалить</button>
+            <a href="javascript:history.back()" class="btn btn-secondary btn-lg">Отмена</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

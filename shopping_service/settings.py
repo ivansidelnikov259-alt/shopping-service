@@ -12,26 +12,16 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-x1=u0w)0v)jv8$f4rwe*35dyi195z8w!3clh=lfo8%zqa)edtw'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-# При сдаче ПР5 требуется продемонстрировать работу handler404.
-# Для этого временно установите DEBUG = False, проверьте /nonexistent/
-# и верните DEBUG = True обратно.
 DEBUG = True
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 
-# Application definition
 
 INSTALLED_APPS = [
     "django.contrib.admin",
