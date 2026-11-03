@@ -38,21 +38,21 @@
             {% endif %}
 
             <!-- Блок статуса с кнопкой переключения -->
-            {% if shopping_list.is_completed %}
-                <div class="mt-3">
-                    <span class="badge bg-secondary fs-6">Завершён</span>
-                    <a href="{% url 'shopping_lists:toggle_status' shopping_list.id %}" class="btn btn-sm btn-outline-success ms-2">
-                        Вернуть в работу
-                    </a>
-                </div>
-            {% else %}
-                <div class="mt-3">
+            <div class="mt-3">
+                {% if shopping_list.status == 'active' %}
                     <span class="badge bg-success fs-6">Активен</span>
                     <a href="{% url 'shopping_lists:toggle_status' shopping_list.id %}" class="btn btn-sm btn-outline-secondary ms-2">
                         Завершить
                     </a>
-                </div>
-            {% endif %}
+                {% elif shopping_list.status == 'completed' %}
+                    <span class="badge bg-secondary fs-6">Завершён</span>
+                    <a href="{% url 'shopping_lists:toggle_status' shopping_list.id %}" class="btn btn-sm btn-outline-success ms-2">
+                        Вернуть в работу
+                    </a>
+                {% else %}
+                    <span class="badge bg-dark fs-6">В архиве</span>
+                {% endif %}
+            </div>
         </div>
     </div>
 

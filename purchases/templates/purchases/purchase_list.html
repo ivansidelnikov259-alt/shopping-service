@@ -67,7 +67,12 @@
                         <h5 class="card-title">{{ purchase.product_name }}</h5>
                         <p class="card-text"><strong>Цена:</strong> {{ purchase.price|floatformat:2 }} руб.</p>
                         <p class="card-text"><strong>Категория:</strong> {{ purchase.category.name }}</p>
-                        <p class="card-text"><strong>Магазин:</strong> {{ purchase.store.name|default:"Не указан" }}</p>
+                        <p class="card-text">
+                        <strong>Магазин:</strong> {{ purchase.store.name|default:"Не указан" }}
+                            {% if purchase.store.address %}
+                                <br><small class="text-muted">Адрес: {{ purchase.store.address }}</small>
+                            {% endif %}
+                        </p>
                         
                         <div class="mt-3 d-flex gap-2">
                             <a href="{% url 'purchases:detail' purchase.id %}" class="btn btn-sm btn-primary">Подробнее</a>

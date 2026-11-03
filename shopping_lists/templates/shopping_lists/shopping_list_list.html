@@ -15,7 +15,15 @@
                     <a href="{% url 'shopping_lists:detail' shopping_list.id %}" class="fw-bold text-decoration-none">
                         {{ shopping_list.name }}
                     </a>
-                    <span class="text-muted ms-2">({{ shopping_list.items.count }} товаров)</span>
+                    <span class="text-muted ms-2">({{ shopping_list.items_count }} товаров)</span>
+                    
+                    {% if shopping_list.status == 'active' %}
+                        <span class="badge bg-success ms-2">Активен</span>
+                    {% elif shopping_list.status == 'completed' %}
+                        <span class="badge bg-secondary ms-2">Завершён</span>
+                    {% else %}
+                        <span class="badge bg-dark ms-2">В архиве</span>
+                    {% endif %}
                 </div>
                 <span class="badge bg-secondary">{{ shopping_list.total_sum|default:0|floatformat:2 }} руб.</span>
             </li>

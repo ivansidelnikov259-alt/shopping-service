@@ -1,9 +1,13 @@
-{% if shopping_list.is_completed %}
+{% if shopping_list.status == 'active' %}
+    <span class="badge bg-success status-badge status-active">
+        Активен
+    </span>
+{% elif shopping_list.status == 'completed' %}
     <span class="badge bg-secondary status-badge status-completed">
         Завершён
     </span>
 {% else %}
-    <span class="badge bg-success status-badge status-active">
-        Активен
+    <span class="badge bg-dark status-badge status-archived">
+        В архиве
     </span>
 {% endif %}

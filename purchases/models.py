@@ -2,7 +2,9 @@
 Модели приложения purchases.
 """
 from django.db import models
+from django.urls import reverse
 from homepage.models import TimeStampedModel
+from django.db.models import Case, When, Value, BooleanField
 
 
 class Category(models.Model):
@@ -17,7 +19,7 @@ class Category(models.Model):
         verbose_name = "Категория"
         verbose_name_plural = "Категории"
         ordering = ["name"]
-        db_table = "categories"  # Привязка к таблице из ПР7
+        db_table = "categories"
 
     def __str__(self):
         return self.name
@@ -40,12 +42,13 @@ class Store(models.Model):
         verbose_name = "Магазин"
         verbose_name_plural = "Магазины"
         ordering = ["name"]
-        db_table = "stores"  # Привязка к таблице из ПР7
+        db_table = "stores"
 
     def __str__(self):
         return self.name
 
-class Purchase(TimeStampedModel):  # Наследуемся от абстрактной модели
+
+class Purchase(TimeStampedModel):
     """Покупка."""
     product_name = models.CharField(
         max_length=200,
@@ -71,12 +74,25 @@ class Purchase(TimeStampedModel):  # Наследуемся от абстрак�
     purchase_date = models.DateField(
         verbose_name="Дата покупки"
     )
+    is_expensive = models.GeneratedField(
+        expression=Case(
+            When(price__gte=1000, then=Value(True)),
+            default=Value(False),
+            output_field=BooleanField(),
+        ),
+        output_field=BooleanField(),
+        db_persist=True,
+        verbose_name="Дорогая покупка",
+    )
 
     class Meta:
         verbose_name = "Покупка"
         verbose_name_plural = "Покупки"
         ordering = ["-purchase_date"]
-        db_table = "purchases"  # Привязка к таблице из ПР7
+        db_table = "purchases"
 
     def __str__(self):
         return f"{self.product_name} - {self.price} руб."
+
+    def get_absolute_url(self):
+        return reverse("purchases:detail", kwargs={"purchase_id": self.pk})

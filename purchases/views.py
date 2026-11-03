@@ -6,25 +6,22 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from datetime import datetime
 from .forms import PurchaseForm, CategoryForm, StoreForm
-
-from .models import Purchase, Category
+from .models import Purchase, Category, Store
 
 
 def purchases(request):
     """Страница со списком всех покупок (с поиском, сортировкой и пагинацией)."""
-    # 1. Получаем параметры из GET-запроса
     query = request.GET.get("q", "").strip()
     sort = request.GET.get("sort", "date")
     
-    # 2. Получаем все покупки из базы (с оптимизацией)
+    # Получаем все покупки из базы (с оптимизацией)
     purchases_list = list(Purchase.objects.select_related("category", "store").all())
     
-    # 3. ПОИСК НА СТОРОНЕ PYTHON (100% игнорирует регистр для кириллицы)
+    # ПОИСК НА СТОРОНЕ PYTHON (100% игнорирует регистр для кириллицы)
     if query:
         query_lower = query.lower()
         filtered_list = []
         for p in purchases_list:
-            # Безопасно проверяем каждое поле, даже если магазина нет
             product_name = p.product_name.lower() if p.product_name else ""
             category_name = p.category.name.lower() if p.category and p.category.name else ""
             store_name = p.store.name.lower() if p.store and p.store.name else ""
@@ -33,7 +30,7 @@ def purchases(request):
                 filtered_list.append(p)
         purchases_list = filtered_list
         
-    # 4. СОРТИРОВКА НА СТОРОНЕ PYTHON
+    # СОРТИРОВКА НА СТОРОНЕ PYTHON
     if sort == "date":
         purchases_list.sort(key=lambda x: x.purchase_date, reverse=True)
     elif sort == "price":
@@ -41,10 +38,10 @@ def purchases(request):
     elif sort == "name":
         purchases_list.sort(key=lambda x: x.product_name.lower())
         
-    # 5. Агрегация общей суммы
+    # Агрегация
     total_sum = sum(p.price for p in purchases_list)
 
-    # 6. Пагинация
+    # Пагинация
     paginator = Paginator(purchases_list, 5)
     page_obj = paginator.get_page(request.GET.get("page"))
 
@@ -60,19 +57,9 @@ def purchases(request):
 
 def purchase_detail(request, purchase_id):
     """Страница отдельной покупки."""
-    try:
-        purchase_id_int = int(purchase_id)
-    except ValueError:
-        return render(
-            request,
-            "purchases/purchase_detail.html",
-            {"purchase": None},
-            status=404,
-        )
-
     purchase = get_object_or_404(
         Purchase.objects.select_related("category", "store"),
-        pk=purchase_id_int
+        pk=purchase_id
     )
     context = {"purchase": purchase}
     return render(request, "purchases/purchase_detail.html", context)
@@ -99,18 +86,15 @@ def purchase_search(request):
 
 def purchases_statistics(request):
     """Страница статистики покупок."""
-    # Группировка по категориям через annotate
     stats = Category.objects.annotate(
         purchases_count=Count("purchases"),
         total_sum=Sum("purchases__price")
     ).filter(purchases_count__gt=0).order_by("-total_sum")
 
-    # Использование values() для получения только нужных полей
     top_purchases = Purchase.objects.select_related("category").values(
         "product_name", "price", "category__name"
     ).order_by("-price")[:5]
 
-    # Агрегация общих данных
     total_data = Purchase.objects.aggregate(
         total_count=Count("id"),
         total_sum=Sum("price")
@@ -124,6 +108,7 @@ def purchases_statistics(request):
     }
     return render(request, "purchases/statistics.html", context)
 
+
 # --- СОЗДАНИЕ И РЕДАКТИРОВАНИЕ ПОКУПКИ ---
 def purchase_create(request):
     if request.method == 'POST':
@@ -133,7 +118,18 @@ def purchase_create(request):
             return redirect('purchases:list')
     else:
         form = PurchaseForm()
-    return render(request, 'purchases/purchase_form.html', {'form': form, 'title': 'Добавить покупку'})
+        
+    # Передаем списки для автодополнения (datalist)
+    categories = Category.objects.all().order_by('name')
+    stores = Store.objects.all().order_by('name')
+    
+    return render(request, 'purchases/purchase_form.html', {
+        'form': form, 
+        'title': 'Добавить покупку',
+        'categories': categories,
+        'stores': stores
+    })
+
 
 def purchase_edit(request, purchase_id):
     purchase = get_object_or_404(Purchase, pk=purchase_id)
@@ -144,7 +140,18 @@ def purchase_edit(request, purchase_id):
             return redirect('purchases:list')
     else:
         form = PurchaseForm(instance=purchase)
-    return render(request, 'purchases/purchase_form.html', {'form': form, 'title': 'Редактировать покупку'})
+        
+    # Передаем списки для автодополнения (datalist)
+    categories = Category.objects.all().order_by('name')
+    stores = Store.objects.all().order_by('name')
+    
+    return render(request, 'purchases/purchase_form.html', {
+        'form': form, 
+        'title': 'Редактировать покупку',
+        'categories': categories,
+        'stores': stores
+    })
+
 
 def purchase_delete(request, purchase_id):
     purchase = get_object_or_404(Purchase, pk=purchase_id)
@@ -153,7 +160,8 @@ def purchase_delete(request, purchase_id):
         return redirect('purchases:list')
     return render(request, 'purchases/confirm_delete.html', {'object': purchase, 'title': 'Удалить покупку'})
 
-# --- УПРАВЛЕНИЕ КАТЕГОРИЯМИ ---
+
+# --- УПРАВЛЕНИЕ КАТЕГОРИЯМИ И МАГАЗИНАМИ ---
 def category_create(request):
     if request.method == 'POST':
         form = CategoryForm(request.POST)
@@ -164,7 +172,7 @@ def category_create(request):
         form = CategoryForm()
     return render(request, 'purchases/purchase_form.html', {'form': form, 'title': 'Добавить категорию'})
 
-# --- УПРАВЛЕНИЕ МАГАЗИНАМИ ---
+
 def store_create(request):
     if request.method == 'POST':
         form = StoreForm(request.POST)
